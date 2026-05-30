@@ -1,0 +1,12 @@
+﻿RoadSafe 데이터 적용 범위
+========================================
+원본 CSV 파일 수: 3
+원본 행 수: 14329
+- 원본CSV / #Uc804#Uad6d#Uad50#Ud1b5#Uc0ac#Uace0#Ub2e4#Ubc1c#Uc9c0#Uc5ed#Ud45c#Uc900#Ub370#Uc774#Ud130.csv / 12780행 / 사고다발지역 원본
+- 원본CSV / koroad_frequentzone_lg.csv / 660행 / 사고다발지역 원본
+- 원본CSV / koroad_frequentzone_lgr_violt.csv / 889행 / 사고다발지역 원본
+- 처리결과 / accident_clean.csv / 14329행 / 전체 원본 기반 생성
+- 처리결과 / accident_final.csv / 14329행 / 전체 원본 기반 생성
+- 처리결과 / risk_features.csv / 14305행 / 전체 원본 기반 생성
+- 처리결과 / final_risk_table.csv / 14305행 / 전체 원본 기반 생성
+- 처리결과 / live_risk_table.csv / 13726행 / 전체 원본 기반 생성

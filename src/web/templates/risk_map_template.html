@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RoadSafe</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="{style_href}" />
+</head>
+<body>
+    <div id="app" class="app">
+        <aside id="sidebar" class="sidebar">
+            <div class="panel-inner">
+                <div class="brand-block" aria-label="RoadSafe">
+                    <div class="brand-mark">RS</div>
+                    <div>
+                        <div id="pageTitle" class="brand-name">RoadSafe</div>
+                        <div class="brand-subtitle">Traffic Risk Intelligence</div>
+                    </div>
+                </div>
+
+                <h2>지역 선택</h2>
+                <div class="select-group">
+                    <select id="sidoSelect">
+                        <option value="">시/도 선택</option>
+                    </select>
+                    <select id="sigunguSelect" disabled>
+                        <option value="">시/군/구 선택</option>
+                    </select>
+                    <select id="gradeSelect">
+                        <option value="">전체 위험등급</option>
+                        <option value="매우높음">매우높음</option>
+                        <option value="높음">높음</option>
+                        <option value="보통">보통</option>
+                        <option value="낮음">낮음</option>
+                    </select>
+                </div>
+
+                <div class="button-row">
+                    <button id="applyBtn" type="button">지도 불러오기</button>
+                    <button id="resetBtn" type="button" class="secondary">초기화</button>
+                </div>
+
+                <button id="locateBtn" type="button" class="gps-button">내 위치 주변 위험 확인</button>
+                <div id="errorBox" class="error-box"></div>
+
+                <h2>현재 선택 요약</h2>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">표시 구간 수</div>
+                        <div id="countValue" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="scoreLabel" class="stat-label">평균 위험점수</div>
+                        <div id="scoreValue" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">최고 위험등급</div>
+                        <div id="topGradeValue" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">현재 필터</div>
+                        <div id="filterValue" class="stat-value">전체</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <button id="panelToggle" class="panel-toggle" title="패널 열기/숨기기" type="button"></button>
+
+        <section class="map-shell">
+            <div id="mapToolbar" class="map-toolbar show nav-toolbar">
+                <div class="toolbar-kicker">RoadSafe Navigation</div>
+                <div id="toolbarTitle" class="toolbar-title">내비게이션형 경로 분석</div>
+                <div id="toolbarValue" class="toolbar-value">목적지를 검색하고 현재 위치 기준 경로 위험도를 확인하세요.</div>
+
+                <div class="nav-header-card">
+                    <label class="nav-label" for="destinationSearchInput">목적지 검색</label>
+                    <div class="nav-search-row">
+                        <input id="destinationSearchInput" type="text" placeholder="예: 강남역, 백석대학교" autocomplete="off" />
+                        <button id="destinationSearchBtn" type="button" class="secondary">검색</button>
+                    </div>
+                    <div class="nav-action-row">
+                        <button id="routeAnalyzeBtn" type="button" class="route-button">현재 위치에서 목적지까지 위험 분석</button>
+                        <label class="voice-toggle">
+                            <input id="voiceToggle" type="checkbox" checked />
+                            음성 경고 사용
+                        </label>
+                    </div>
+                    <div id="destinationResultBox" class="destination-result"></div>
+                    <div id="routeLoadingBar" class="route-loading-bar" aria-hidden="true"><span></span></div>
+                    <div id="routePanel" class="route-panel"></div>
+                </div>
+            </div>
+
+            <div class="legend-overlay">
+                <div class="legend-title">위험등급 색상</div>
+                <div class="legend">
+                    <div class="legend-item"><span class="swatch" style="background:{very_high_color};"></span>매우높음</div>
+                    <div class="legend-item"><span class="swatch" style="background:{high_color};"></span>높음</div>
+                    <div class="legend-item"><span class="swatch" style="background:{medium_color};"></span>보통</div>
+                    <div class="legend-item"><span class="swatch" style="background:{low_color};"></span>낮음</div>
+                </div>
+            </div>
+
+            <div id="mapMessage" class="map-message"></div>
+            <div id="nearestPanel" class="nearest-panel"></div>
+            <div id="map"></div>
+        </section>
+    </div>
+
+    <script id="risk-map-config" type="application/json">{app_config_json}</script>
+    <script src="{script_href}"></script>
+</body>
+</html>

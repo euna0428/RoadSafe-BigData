@@ -1,0 +1,10 @@
+pandas
+numpy
+matplotlib
+folium
+requests
+openpyxl
+scikit-learn
+python-dotenv
+jupyter
+tqdm
