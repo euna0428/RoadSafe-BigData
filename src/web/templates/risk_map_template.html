@@ -72,7 +72,10 @@
             <div id="mapToolbar" class="map-toolbar show nav-toolbar">
                 <div class="toolbar-kicker">RoadSafe Navigation</div>
                 <div id="toolbarTitle" class="toolbar-title">내비게이션형 경로 분석</div>
-                <div id="toolbarValue" class="toolbar-value">목적지를 검색하고 현재 위치 기준 경로 위험도를 확인하세요.</div>
+                <div class="nav-toolbar-head">
+                    <div id="toolbarValue" class="toolbar-value">목적지를 검색하고 현재 위치 기준 경로 위험도를 확인하세요.</div>
+                    <button id="navToolbarCollapseBtn" type="button" class="nav-toolbar-close" aria-label="목적지 검색창 접기">×</button>
+                </div>
 
                 <div class="nav-header-card">
                     <label class="nav-label" for="destinationSearchInput">목적지 검색</label>
@@ -92,6 +95,11 @@
                     <div id="routePanel" class="route-panel"></div>
                 </div>
             </div>
+
+            <button id="navToolbarOpenBtn" type="button" class="nav-toolbar-open" aria-label="목적지 검색창 열기">
+                <span>목적지 검색</span>
+                <small>열기</small>
+            </button>
 
             <div class="legend-overlay">
                 <div class="legend-title">위험등급 색상</div>

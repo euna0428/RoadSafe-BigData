@@ -33,6 +33,8 @@ const routeAnalyzeBtn = document.getElementById("routeAnalyzeBtn");
 const voiceToggle = document.getElementById("voiceToggle");
 const routePanel = document.getElementById("routePanel");
 const routeLoadingBar = document.getElementById("routeLoadingBar");
+const navToolbarCollapseBtn = document.getElementById("navToolbarCollapseBtn");
+const navToolbarOpenBtn = document.getElementById("navToolbarOpenBtn");
 
 const sidoSelect = document.getElementById("sidoSelect");
 const sigunguSelect = document.getElementById("sigunguSelect");
@@ -100,6 +102,7 @@ let followModeButton = null;
 let navigationControlDock = null;
 let wakeLock = null;
 let speechPrimed = false;
+let navToolbarCollapsed = false;
 
 const OVERLAP_PIXEL_THRESHOLD = 36;
 const MARKER_HIDE_DELAY = 450;
@@ -195,17 +198,30 @@ function getVisibleElementRect(element) {
     return rect;
 }
 
+function getBottomBlockingPanelRect() {
+    const candidates = [nearestPanel];
+
+    if (overlapPanel && overlapPanel.classList && overlapPanel.classList.contains("floating-list-panel")) {
+        candidates.push(overlapPanel);
+    }
+
+    return candidates
+        .map(getVisibleElementRect)
+        .filter(Boolean)
+        .sort((a, b) => a.top - b.top)[0] || null;
+}
+
 function syncNavigationControlDockPosition() {
     if (!navigationControlDock || !mapShell) return;
 
     const shellRect = mapShell.getBoundingClientRect();
-    const nearestRect = getVisibleElementRect(nearestPanel);
+    const blockingRect = getBottomBlockingPanelRect();
     let bottom = 18;
     let width = Math.min(410, Math.max(300, shellRect.width - 36));
 
-    if (nearestRect) {
-        bottom = Math.max(18, shellRect.bottom - nearestRect.top + 12);
-        width = Math.max(300, Math.min(nearestRect.width, shellRect.width - 36));
+    if (blockingRect) {
+        bottom = Math.max(18, shellRect.bottom - blockingRect.top + 12);
+        width = Math.max(300, Math.min(blockingRect.width, shellRect.width - 36));
     }
 
     mapShell.style.setProperty("--navigation-control-bottom", `${Math.round(bottom)}px`);
@@ -216,11 +232,11 @@ function syncMapMessageLayout() {
     if (!mapShell || !mapMessage) return;
 
     const shellRect = mapShell.getBoundingClientRect();
-    const nearestRect = getVisibleElementRect(nearestPanel);
+    const blockingRect = getBottomBlockingPanelRect();
     let safeRight = 0;
 
-    if (nearestRect) {
-        safeRight = Math.max(0, shellRect.right - nearestRect.left + 18);
+    if (blockingRect) {
+        safeRight = Math.max(0, shellRect.right - blockingRect.left + 18);
     }
 
     const maxSafeRight = Math.max(0, shellRect.width - 360);
@@ -904,6 +920,7 @@ function openOverlapOverlay(targetState, states) {
     const content = buildOverlapOverlayContent(states);
     overlapPanel = content;
     mapShell.appendChild(overlapPanel);
+    requestUiLayoutSync();
 
     showMarkerState(targetState, "default");
     map.panTo(targetState.latlng);
@@ -2021,6 +2038,100 @@ function setNavigationLoading(active, message = "") {
     if (message) setDestinationResult(message);
 }
 
+function setNavToolbarCollapsed(collapsed) {
+    navToolbarCollapsed = !!collapsed;
+    if (mapToolbar) mapToolbar.classList.toggle("collapsed", navToolbarCollapsed);
+    if (navToolbarOpenBtn) navToolbarOpenBtn.classList.toggle("show", navToolbarCollapsed);
+    requestUiLayoutSync();
+}
+
+function setLocateLoading(active, text = "") {
+    if (!locateBtn) return;
+
+    locateBtn.disabled = !!active;
+    locateBtn.classList.toggle("is-locating", !!active);
+
+    if (active) {
+        locateBtn.innerHTML = `<span class="gps-button-label">${escapeHtml(text || "현재 위치 확인 중...")}</span><span class="gps-button-progress" aria-hidden="true"></span>`;
+        locateBtn.setAttribute("aria-busy", "true");
+        return;
+    }
+
+    locateBtn.removeAttribute("aria-busy");
+    locateBtn.textContent = text || "내 위치 주변 위험 확인";
+}
+
+function getGeolocationErrorMessage(error) {
+    const messageByCode = {
+        1: "브라우저 위치 권한이 거부되었습니다. 주소창 왼쪽 자물쇠/정보 아이콘에서 위치 권한을 허용해 주세요.",
+        2: "현재 위치를 확인할 수 없습니다. 네트워크 또는 장치 위치 설정을 확인해 주세요.",
+        3: "위치 확인 시간이 초과되었습니다. 다시 시도해 주세요."
+    };
+    return messageByCode[error && error.code] || "위치 확인 중 알 수 없는 오류가 발생했습니다.";
+}
+
+function getBestCurrentPositionForLocate() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("현재 브라우저에서 위치 정보 기능을 지원하지 않습니다."));
+            return;
+        }
+
+        let bestPosition = null;
+        let watchId = null;
+        let timeoutId = null;
+        let finished = false;
+
+        const cleanup = () => {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            if (timeoutId !== null) {
+                window.clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+
+        const finish = (position, error = null) => {
+            if (finished) return;
+            finished = true;
+            cleanup();
+            if (position) resolve(position);
+            else reject(error || new Error("현재 위치를 확인할 수 없습니다."));
+        };
+
+        const acceptCandidate = position => {
+            if (!position || !position.coords) return;
+            const accuracy = Number(position.coords.accuracy);
+            const bestAccuracy = bestPosition && bestPosition.coords ? Number(bestPosition.coords.accuracy) : Infinity;
+
+            if (!bestPosition || (Number.isFinite(accuracy) && accuracy < bestAccuracy)) {
+                bestPosition = position;
+                if (toolbarValue) toolbarValue.textContent = `현재 위치 정밀 확인 중 · 정확도 ${formatDistance(accuracy)}`;
+            }
+
+            if (Number.isFinite(accuracy) && accuracy <= GEOLOCATION_ACCURACY_WARN_M) {
+                finish(position);
+            }
+        };
+
+        timeoutId = window.setTimeout(() => {
+            finish(bestPosition, { code: 3, message: "위치 확인 시간이 초과되었습니다." });
+        }, GEOLOCATION_TIMEOUT_MS);
+
+        watchId = navigator.geolocation.watchPosition(
+            acceptCandidate,
+            error => finish(bestPosition, error),
+            {
+                enableHighAccuracy: true,
+                timeout: GEOLOCATION_TIMEOUT_MS,
+                maximumAge: GEOLOCATION_MAXIMUM_AGE_MS
+            }
+        );
+    });
+}
+
 function getCurrentPositionOnce() {
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
@@ -2657,7 +2768,7 @@ function maybeAutoReroute(lat, lon) {
     analyzeRouteRisk({ skipSearch: true, autoReroute: true, keepMessage: true });
 }
 
-function locateUser() {
+async function locateUser() {
     setError("");
 
     if (!isMapReady || !map) {
@@ -2670,35 +2781,30 @@ function locateUser() {
         return;
     }
 
-    if (locateBtn) locateBtn.disabled = true;
-    if (locateBtn) locateBtn.textContent = "위치 확인 중...";
+    stopRouteSimulation(false);
+    setNavigationFollowMode("follow");
+    setLocateLoading(true, "현재 위치 정밀 확인 중...");
+    if (toolbarValue) toolbarValue.textContent = "현재 위치 정밀 확인 중 · 정확도 좋은 좌표를 우선 적용합니다.";
 
-    navigator.geolocation.getCurrentPosition(
-        position => {
-            stopRouteSimulation(false);
-            setNavigationFollowMode("follow");
-            handleGeolocationPosition(position, { center: true, follow: true, keepMessage: false });
-            startUserRiskWatch();
+    try {
+        const position = await getBestCurrentPositionForLocate();
+        const display = handleGeolocationPosition(position, {
+            center: true,
+            follow: true,
+            keepMessage: false,
+            forceRedraw: true
+        });
 
-            if (locateBtn) locateBtn.disabled = false;
-            if (locateBtn) locateBtn.textContent = "내 위치 위험 추적 중";
-        },
-        error => {
-            const messageByCode = {
-                1: "브라우저 위치 권한이 거부되었습니다. 주소창 왼쪽 자물쇠/정보 아이콘에서 위치 권한을 허용해 주세요.",
-                2: "현재 위치를 확인할 수 없습니다. 네트워크 또는 장치 위치 설정을 확인해 주세요.",
-                3: "위치 확인 시간이 초과되었습니다. 다시 시도해 주세요."
-            };
-            setError(messageByCode[error.code] || "위치 확인 중 알 수 없는 오류가 발생했습니다.");
-            if (locateBtn) locateBtn.disabled = false;
-            if (locateBtn) locateBtn.textContent = "내 위치 주변 위험 확인";
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: GEOLOCATION_TIMEOUT_MS,
-            maximumAge: GEOLOCATION_MAXIMUM_AGE_MS
+        startUserRiskWatch();
+        setLocateLoading(false, "내 위치 위험 추적 중");
+
+        if (display && display.lowAccuracy) {
+            setError(`현재 위치 정확도가 낮습니다. 지도는 표시했지만 실제 위치와 ${formatDistance(display.accuracy)} 이상 차이날 수 있습니다.`);
         }
-    );
+    } catch (error) {
+        setError(getGeolocationErrorMessage(error));
+        setLocateLoading(false, "내 위치 주변 위험 확인");
+    }
 }
 
 
@@ -2744,6 +2850,8 @@ function bindEvents() {
         });
     }
     if (routeAnalyzeBtn) routeAnalyzeBtn.addEventListener("click", () => analyzeRouteRisk());
+    if (navToolbarCollapseBtn) navToolbarCollapseBtn.addEventListener("click", () => setNavToolbarCollapsed(true));
+    if (navToolbarOpenBtn) navToolbarOpenBtn.addEventListener("click", () => setNavToolbarCollapsed(false));
     if (voiceToggle) voiceToggle.addEventListener("change", primeSpeechSynthesis);
 
     ["click", "keydown", "touchstart"].forEach(eventName => {

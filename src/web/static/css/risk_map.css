@@ -2909,3 +2909,151 @@ button:disabled {
         width: min(620px, calc(100vw - 32px)) !important;
     }
 }
+
+
+/* RoadSafe patch - locate loading, overlap panel separation, collapsible search toolbar */
+.gps-button {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.gps-button.is-locating {
+    background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
+    cursor: wait !important;
+    opacity: 0.96 !important;
+}
+
+.gps-button-label {
+    position: relative;
+    z-index: 2;
+}
+
+.gps-button-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 44%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    animation: gpsButtonLoading 1.05s ease-in-out infinite;
+}
+
+@keyframes gpsButtonLoading {
+    0% { transform: translateX(-110%); }
+    100% { transform: translateX(235%); }
+}
+
+.nav-toolbar-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 30px !important;
+    gap: 10px !important;
+    align-items: start !important;
+}
+
+.nav-toolbar-close {
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    background: #e5e7eb !important;
+    color: #111827 !important;
+    font-size: 19px !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+    box-shadow: none !important;
+}
+
+.nav-toolbar-close:hover {
+    background: #cbd5e1 !important;
+    transform: rotate(90deg) !important;
+}
+
+.nav-toolbar-open {
+    position: absolute !important;
+    top: 18px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 59 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    width: min(320px, calc(100% - 520px)) !important;
+    min-width: 220px !important;
+    min-height: 44px !important;
+    padding: 0 16px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(226, 232, 240, 0.96) !important;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14) !important;
+    backdrop-filter: blur(12px) !important;
+    text-align: left !important;
+}
+
+.nav-toolbar-open.show {
+    display: flex !important;
+}
+
+.nav-toolbar-open span {
+    font-size: 14px !important;
+    font-weight: 950 !important;
+}
+
+.nav-toolbar-open small {
+    color: #2563eb !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+}
+
+.map-toolbar.nav-toolbar.collapsed {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateX(-50%) translateY(-10px) scale(0.98) !important;
+}
+
+.overlap-list-panel {
+    z-index: 72 !important;
+    bottom: 18px !important;
+}
+
+.navigation-control-dock {
+    pointer-events: auto !important;
+}
+
+@media (max-width: 1360px) {
+    .nav-toolbar-open {
+        width: min(300px, calc(100% - 460px)) !important;
+    }
+}
+
+@media (max-width: 1080px) {
+    .nav-toolbar-open {
+        width: min(320px, calc(100% - 40px)) !important;
+        min-width: 0 !important;
+    }
+}
+
+@media (max-width: 980px) {
+    .nav-toolbar-head {
+        grid-template-columns: minmax(0, 1fr) 28px !important;
+    }
+
+    .nav-toolbar-close {
+        width: 28px !important;
+        min-width: 28px !important;
+        height: 28px !important;
+        min-height: 28px !important;
+    }
+
+    .nav-toolbar-open {
+        top: 10px !important;
+        width: calc(100vw - 28px) !important;
+        max-width: calc(100vw - 28px) !important;
+    }
+}
