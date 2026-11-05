@@ -84,10 +84,15 @@ docs/                      위험도 산정 기준, 상세 개발 기록
 3. `python src/realtime_runner.py` — 기상·돌발상황 반영 실시간 갱신
 4. `python src/navigation_server.py` — 웹 서버 실행 후 http://127.0.0.1:8000/ 접속
 
-자세한 순서와 자주 생기는 문제는 상세 개발 기록에 있습니다.
+자세한 순서와 자주 생기는 문제는 [상세 개발 기록](https://github.com/euna0428/RoadSafe-BigData/blob/main/docs/DEV_README.md)에 있습니다.
 
 ## 관련 문서
 
-- 위험도 산정 기준
-- 상세 개발 기록
-- 기존 README
+- [위험도 산정 기준](https://github.com/euna0428/RoadSafe-BigData/blob/main/docs/risk_score_criteria.md)
+- [상세 개발 기록](https://github.com/euna0428/RoadSafe-BigData/blob/main/docs/DEV_README.md)
+- [기존 README](https://github.com/euna0428/RoadSafe-BigData/blob/main/README_PREVIOUS)
+- [분석 그래프](https://github.com/euna0428/RoadSafe-BigData/tree/main/outputs/figures)
+- [위험도 지도](https://github.com/euna0428/RoadSafe-BigData/tree/main/outputs/maps)
+- [분석 결과 표](https://github.com/euna0428/RoadSafe-BigData/tree/main/outputs/tables)
+- [모델 평가 메모](https://github.com/euna0428/RoadSafe-BigData/blob/main/outputs/tables/model_evaluation_note.txt)
+- [분석 노트북](https://github.com/euna0428/RoadSafe-BigData/tree/main/notebooks)
